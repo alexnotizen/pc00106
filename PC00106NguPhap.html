@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>BÀI 6 – NGỮ PHÁP</title>
+<style>
+*{box-sizing:border-box}
+body{
+  margin:0; min-height:100vh; font-family:Arial,"Microsoft YaHei",sans-serif;
+  background:#fdfbf7;
+  display:flex; justify-content:center; color:#202124;
+}
+.app{width:min(860px,96vw); padding:30px 0 40px}
+h1{text-align:center;margin:0 0 15px;font-size:32px; font-weight: bold;}
+.progress{text-align:center;font-size:18px;color:#444;margin-bottom:20px; font-weight: bold;}
+.card-wrap{perspective:1200px; cursor:pointer}
+.card{
+  width:100%; height:592px; position:relative; transform-style:preserve-3d;
+  transition:transform .55s ease;
+}
+.card.flipped{transform:rotateY(180deg)}
+.face{
+  position:absolute; inset:0; backface-visibility:hidden; -webkit-backface-visibility:hidden;
+  border-radius:24px; background:white; box-shadow:0 15px 45px rgba(0,0,0,.15);
+  display:flex; flex-direction:column; padding:36px; border:3px solid #eee; overflow-y:auto;
+}
+.front{justify-content:flex-start; align-items:flex-start; text-align:left}
+.back{transform:rotateY(180deg); text-align:left; align-items:flex-start; justify-content:flex-start; padding-top:40px;}
+
+.hl-blue { color: #2563eb; font-weight: bold; }
+.hl-red { color: #dc2626; font-weight: bold; }
+
+/* Pinyin mặt trước: căn giữa */
+.pinyin{
+  font-size:1.55em;
+  color:#666666;
+  margin-bottom:12px;
+  font-weight:bold;
+  text-align:center;
+  width:100%;
+}
+
+.zh-front { font-size: 2em; font-weight: bold; margin-bottom: 8px; line-height: 1.3; color: #dc2626; text-align: center; width: 100%; }
+
+/* Mặt sau */
+.zh-back { color: #2563eb; font-weight: bold; font-size: 1.65em; line-height: 1.2; display: inline-block; margin-top: 10px; margin-bottom: 2px; }
+.pinyin-back { color: #666666; font-weight: bold; font-size: 1.05em; display: block; margin: 2px 0; }
+.vi-back { font-size: 1.05em; color: #333; display: block; margin-bottom: 14px; }
+
+.desc-front { font-size: 1.2em; color: #333; margin: 12px 0; text-align: left; width: 100%; line-height: 1.5; }
+.desc{font-size: 1.3em; color: #333; margin: 0; text-align: left; width: 100%; line-height: 1.45;}
+
+.controls{display:flex;gap:20px;justify-content:center;margin-top:30px}
+button{
+  border:0;border-radius:20px;padding:20px 35px;font-size:22px;
+  cursor:pointer;background:#e9eef7;color:#233044; font-weight: bold; box-shadow: 0 4px 6px rgba(0,0,0,.1);
+}
+button.primary{background:#2563eb;color:white}
+</style>
+</head>
+
+<body>
+<div class="app">
+  <h1 id="title">BÀI 6 – NGỮ PHÁP</h1>
+  <div class="progress" id="progress"></div>
+
+  <div class="card-wrap" id="cardWrap" onclick="flipCard()">
+    <div class="card" id="card">
+      <div class="face front" id="frontFace"></div>
+      <div class="face back" id="backFace"></div>
+    </div>
+  </div>
+
+  <div class="controls">
+    <button onclick="event.stopPropagation();prevCard()">← TRƯỚC</button>
+    <button class="primary" onclick="event.stopPropagation();flipCard()">LẬT THẺ</button>
+    <button onclick="event.stopPropagation();nextCard()">TIẾP →</button>
+  </div>
+</div>
+
+<script>
+const cards = [
+  {
+    f: "<div class='zh-front' style='text-align:center;'>TÔI SỨC KHỎE RẤT TỐT</div>" +
+       "<div class='zh-front'>我身体很好</div>" +
+       "<div class='pinyin'>Wǒ shēntǐ hěn hǎo</div>" +
+       "<div class='desc-front'>" +
+       "<b>Câu có cụm chủ - vị làm vị ngữ</b><br><br>" +
+       "Khẳng định:<br>" +
+       "<span style='font-weight: bold;'>Chủ ngữ LỚN + [Chủ ngữ NHỎ + Vị ngữ NHỎ]</span><br>" +
+       "Phủ định:<br>" +
+       "<span style='font-weight: bold;'>Chủ ngữ LỚN + [Chủ ngữ NHỎ + <span class='hl-red'>不</span> + Vị ngữ NHỎ]</span><br><br>" +
+       "Ở đây vị ngữ không phải là động từ hay tính từ đơn thuần, mà là một cụm chủ ngữ - vị ngữ (tức là một câu nhỏ nằm bên trong câu lớn).<br>" +
+       "Chủ ngữ nhỏ phải là một bộ phận, một thuộc tính, hoặc một khía cạnh của chủ ngữ lớn. Nói cách khác, giữa chủ ngữ LỚN và chủ ngữ NHỎ có mối quan hệ sở hữu hoặc toàn thể - bộ phận." +
+       "</div>",
+    b: "<div class='desc' style='line-height:1.6;'>" +
+       "<span class='zh-back'>银行钱很多。</span><br><span class='pinyin-back'>Yínháng qián hěn duō.</span><span class='vi-back'>Ngân hàng có rất nhiều tiền.</span>" +
+       "<span class='zh-back'>他学习不太努力。</span><br><span class='pinyin-back'>Tā xuéxí bú tài nǔlì.</span><span class='vi-back'>Nó học không chăm chỉ lắm.</span>" +
+       "<span class='zh-back'>我们学校留学生挺多的。</span><br><span class='pinyin-back'>Wǒmen xuéxiào liúxuéshēng tǐng duō de.</span><span class='vi-back'>Trường chúng tôi du học sinh khá nhiều.</span>" +
+       "<span class='zh-back'>这个图书馆书很新。</span><br><span class='pinyin-back'>Zhè ge túshūguǎn shū hěn xīn.</span><span class='vi-back'>Thư viện này sách rất mới.</span>" +
+       "<span class='zh-back'>这个人成绩马马虎虎。</span><br><span class='pinyin-back'>Zhè ge rén chéngjì mǎmǎhūhū.</span><span class='vi-back'>Người này thành tích học tàm tạm.</span>" +
+       "<span class='zh-back'>我妹妹眼睛很大。</span><br><span class='pinyin-back'>Wǒ mèimei yǎnjing hěn dà.</span><span class='vi-back'>Em gái tôi mắt rất to.</span>" +
+       "<span class='zh-back'>她姐姐头发挺长。</span><br><span class='pinyin-back'>Tā jiějie tóufa tǐng cháng.</span><span class='vi-back'>Chị hắn ta tóc khá dài.</span>" +
+       "<span class='zh-back'>我朋友的弟弟个子很高。</span><br><span class='pinyin-back'>Wǒ péngyou de dìdi gèzi hěn gāo.</span><span class='vi-back'>Em trai của bạn tôi rất cao.</span>" +
+       "<span class='zh-back'>他们学校成绩挺不错。</span><br><span class='pinyin-back'>Tāmen xuéxiào chéngjì tǐng bú cuò.</span><span class='vi-back'>Trường họ thành tích rất không tồi.</span>" +
+       "<span class='zh-back'>办公室空调在哪儿？</span><br><span class='pinyin-back'>Bàngōngshì kòngtiáo zài nǎr?</span><span class='vi-back'>Điều hòa văn phòng ở đâu?</span>" +
+       "<span class='zh-back'>办公室空调就在那儿。</span><br><span class='pinyin-back'>Bàngōngshì kòngtiáo jiù zài nàr.</span><span class='vi-back'>Điều hòa văn phòng ở ngay kia.</span>" +
+       "<span class='zh-back'>办公室空调不新。</span><br><span class='pinyin-back'>Bàngōngshì kòngtiáo bù xīn.</span><span class='vi-back'>Điều hòa văn phòng không mới.</span>" +
+       "<span class='zh-back'>你家电视在哪儿？</span><br><span class='pinyin-back'>Nǐ jiā diànshì zài nǎr?</span><span class='vi-back'>Ti vi nhà bạn ở đâu?</span>" +
+       "<span class='zh-back'>我家电视就在那儿。</span><br><span class='pinyin-back'>Wǒ jiā diànshì jiù zài nàr.</span><span class='vi-back'>Ti vi nhà tôi ở ngay kia.</span>" +
+       "<span class='zh-back'>你家电视挺大。</span><br><span class='pinyin-back'>Nǐ jiā diànshì tǐng dà.</span><span class='vi-back'>Ti vi nhà bạn khá to.</span>" +
+       "</div>"
+  },
+  {
+    f: "<div class='zh-front' style='text-align:center;'>BẠN BẬN KHÔNG?</div>" +
+       "<div class='zh-front'>你忙不忙？</div>" +
+       "<div class='pinyin'>Nǐ máng bu máng?</div>" +
+       "<div class='desc-front'>" +
+       "<b>Câu hỏi chính phản (hay câu hỏi khẳng định-phủ định)</b> là một cách khác để đặt câu hỏi có/không, không cần dùng 吗. Cấu trúc chung:<br>" +
+       "<span style='font-weight: bold;'>Chủ ngữ + Vị ngữ + <span class='hl-red'>不</span> + Vị ngữ</span><br>" +
+       "Với 有, dạng phủ định là <span style='font-weight: bold;'><span class='hl-red'>没</span>有</span> (<span class='hl-red'>没</span> để bold, chữ đỏ).<br><br>" +
+       "Nếu vị ngữ là từ hai âm tiết, có 2 cách:<br>" +
+       "1. Lặp lại toàn bộ từ: <span class='hl-blue' style='font-weight: bold;'>他妹妹漂亮不漂亮？</span><br>" +
+       "2. Lần đầu chỉ nói âm tiết đầu tiên: <span class='hl-blue' style='font-weight: bold;'>他妹妹漂不漂亮？</span>" +
+       "</div>",
+    b: "<div class='desc' style='line-height:1.6;'>" +
+       "<span class='zh-back'>你在不在办公室？</span><br><span class='pinyin-back'>Nǐ zài bu zài bàngōngshì?</span><span class='vi-back'>Bạn có ở văn phòng không?</span>" +
+       "<span class='zh-back'>你看不看这本书？</span><br><span class='pinyin-back'>Nǐ kàn bu kàn zhè ben shū?</span><span class='vi-back'>Bạn có đọc cuốn sách này không?</span>" +
+       "<span class='zh-back'>你喝不喝银行的茶？</span><br><span class='pinyin-back'>Nǐ hē bu hē yínháng de chá?</span><span class='vi-back'>Bạn có uống trà của ngân hàng không?</span>" +
+       "<span class='zh-back'>请问你知道不知道我女儿在哪儿？</span><br><span class='pinyin-back'>Qǐngwèn nǐ zhīdào bu zhīdào wǒ nǚ'ér zài nǎr?</span><span class='vi-back'>Xin hỏi bạn có biết con gái tôi ở đâu không?</span>" +
+       "<span class='zh-back'>他学习努力不努力?</span><br><span class='pinyin-back'>Tā xuéxí nǔlì bu nǔlì?</span><span class='vi-back'>Nó học có chăm không?</span>" +
+       "<span class='zh-back'>你们学校留学生多不多?</span><br><span class='pinyin-back'>Nǐmen xuéxiào liúxuéshēng duō bu duō?</span><span class='vi-back'>Trường chúng tôi du học sinh khá nhiều.</span>" +
+       "<span class='zh-back'>这个图书馆书新不新？</span><br><span class='pinyin-back'>Zhè ge túshūguǎn shū xīn bu xīn?</span><span class='vi-back'>Thư viện này sách có mới không?</span>" +
+       "<span class='zh-back'>这个人成绩好不好？</span><br><span class='pinyin-back'>Zhè ge rén chéngjì hǎo bu hǎo?</span><span class='vi-back'>Thành tích của người này có tốt không?</span>" +
+       "<span class='zh-back'>我妹妹眼睛大不大？</span><br><span class='pinyin-back'>Wǒ mèimei yǎnjing dà bu dà?</span><span class='vi-back'>Mắt em gái tôi có to không?</span>" +
+       "<span class='zh-back'>她姐姐头发长不长？</span><br><span class='pinyin-back'>Tā jiějie tóufa cháng bu cháng?</span><span class='vi-back'>Tóc chị gái cô ấy có dài không?</span>" +
+       "<span class='zh-back'>我朋友的弟弟个子高不高？</span><br><span class='pinyin-back'>Wǒ péngyou de dìdi gèzi gāo bu gāo?</span><span class='vi-back'>Em trai của bạn tôi có cao không?</span>" +
+       "<span class='zh-back'>他们学校成绩好不好？</span><br><span class='pinyin-back'>Tāmen xuéxiào chéngjì hǎo bu hǎo?</span><span class='vi-back'>Thành tích trường họ có tốt không?</span>" +
+       "<span class='zh-back'>办公室空调新不新？</span><br><span class='pinyin-back'>Bàngōngshì kòngtiáo xīn bu xīn?</span><span class='vi-back'>Điều hòa văn phòng có mới không?</span>" +
+       "<span class='zh-back'>你家电视大不大？</span><br><span class='pinyin-back'>Nǐ jiā diànshì dà bu dà?</span><span class='vi-back'>Ti vi nhà bạn có to không?</span>" +
+       "<span class='zh-back'>你的宿舍大不大？</span><br><span class='pinyin-back'>Nǐ de sùshè dà bu dà?</span><span class='vi-back'>Ký túc xá của bạn có to không?</span>" +
+       "<span class='zh-back'>你办公室远不远？</span><br><span class='pinyin-back'>Nǐ bàngōngshì yuǎn bu yuǎn?</span><span class='vi-back'>Văn phòng của bạn có xa không?</span>" +
+       "<span class='zh-back'>邮局近不近？</span><br><span class='pinyin-back'>Yóujú jìn bu jìn?</span><span class='vi-back'>Bưu điện có gần không?</span>" +
+       "<span class='zh-back'>银行在不在那儿？</span><br><span class='pinyin-back'>Yínháng zài bu zài nàr?</span><span class='vi-back'>Ngân hàng có ở đó không?</span>" +
+       "<span class='zh-back'>这个银行人多不多？</span><br><span class='pinyin-back'>Zhè ge yínháng rén duō bu duō?</span><span class='vi-back'>Ngân hàng này có đông người không?</span>" +
+       "<span class='zh-back'>你最近累不累？</span><br><span class='pinyin-back'>Nǐ zuìjìn lèi bu lèi?</span><span class='vi-back'>Dạo này bạn có mệt không?</span>" +
+       "<span class='zh-back'>你饿不饿？</span><br><span class='pinyin-back'>Nǐ è bu è?</span><span class='vi-back'>Bạn có đói không?</span>" +
+       "<span class='zh-back'>他弟弟可不可？要不要和矿泉水？</span><br><span class='pinyin-back'>Tā dìdi kě bu kě? Yào bu yào hé kuàngquánshuǐ?</span><span class='vi-back'>Em trai nó có khát không? Có muốn uống nước khoáng không?</span>" +
+       "<span class='zh-back'>你去不去办公室？</span><br><span class='pinyin-back'>Nǐ qù bu qù bàngōngshì?</span><span class='vi-back'>Bạn có đi văn phòng không?</span>" +
+       "<span class='zh-back'>你女儿看不看书？</span><br><span class='pinyin-back'>Nǐ nǚ'ér kàn bu kàn shū?</span><span class='vi-back'>Con gái bạn có đọc sách không?</span>" +
+       "<span class='zh-back'>我不知道她买不买包子。</span><br><span class='pinyin-back'>Wǒ bù zhīdào tā mǎi bu mǎi bāozi.</span><span class='vi-back'>Tôi không biết cô ấy có mua bánh bao không.</span>" +
+       "<span class='zh-back'>你看不看电视？</span><br><span class='pinyin-back'>Nǐ kàn bu kàn diànshì?</span><span class='vi-back'>Bạn có xem ti vi không?</span>" +
+       "<span class='zh-back'>你有没有同屋？</span><br><span class='pinyin-back'>Nǐ yǒu méi yǒu tóngwū?</span><span class='vi-back'>Bạn có bạn cùng phòng không?</span>" +
+       "<span class='zh-back'>A: 宿舍里有没有空调？</span><br><span class='pinyin-back'>A: Sùshè lǐ yǒu méi yǒu kòngtiáo?</span><span class='vi-back'>A: Trong kí túc xá có điều hòa không?</span>" +
+       "<span class='zh-back'>B: 宿舍里有空调。</span><br><span class='pinyin-back'>B: Sùshè lǐ yǒu kòngtiáo.</span><span class='vi-back'>B: Trong kí túc xá có điều hòa.</span>" +
+       "<span class='zh-back'>A: 你有没有同屋？</span><br><span class='pinyin-back'>A: Nǐ yǒu méi yǒu tóngwū?</span><span class='vi-back'>A: Bạn có bạn cùng phòng không?</span>" +
+       "<span class='zh-back'>B: 我没有同屋。</span><br><span class='pinyin-back'>B: Wǒ méi yǒu tóngwū.</span><span class='vi-back'>B: Tôi không có bạn cùng phòng.</span>" +
+       "</div>"
+  },
+  {
+    f: "<div class='zh-front' style='text-align:center;'>CÓ</div>" +
+       "<div class='zh-front'><span class='hl-red'>有</span></div>" +
+       "<div class='pinyin'>Yǒu</div>" +
+       "<div class='desc-front'>" +
+       "Động từ <span style='font-weight: bold;'><span class='hl-red'>有</span></span> dùng để:<br>" +
+       "• Chỉ sự sở hữu: ai đó có cái gì<br>" +
+       "• Chỉ sự tồn tại: ở đâu có cái gì<br><br>" +
+       "<b>Khẳng định:</b> <span style='font-weight: bold;'>Chủ ngữ + <span class='hl-red'>有</span> + Tân ngữ</span><br>" +
+       "<b>Phủ định:</b> <span style='font-weight: bold;'>Chủ ngữ + <span class='hl-red'>没有</span> + Tân ngữ</span><br>" +
+       "<b>Câu hỏi:</b> <span style='font-weight: bold;'><span class='hl-red'>有… 吗?</span></span> hoặc <span style='font-weight: bold;'><span class='hl-red'>有没有</span></span>" +
+       "</div>",
+    b: "<div class='desc' style='line-height:1.6;'>" +
+       "<span class='zh-back'>我有很多钱。</span><br><span class='pinyin-back'>Wǒ yǒu hěn duō qián.</span><span class='vi-back'>Tôi có rất nhiều tiền.</span>" +
+       "<span class='zh-back'>我们学校有很多留学生。</span><br><span class='pinyin-back'>Wǒmen xuéxiào yǒu hěn duō liúxuéshēng.</span><span class='vi-back'>Trường chúng tôi có rất nhiều du học sinh.</span>" +
+       "<span class='zh-back'>我朋友有两个姐姐。</span><br><span class='pinyin-back'>Wǒ péngyou yǒu liǎng gè jiějie.</span><span class='vi-back'>Tôi có hai người chị gái.</span>" +
+       "<span class='zh-back'>宿舍里有空调。</span><br><span class='pinyin-back'>Sùshè lǐ yǒu kòngtiáo.</span><span class='vi-back'>Trong ký túc xá có điều hòa.</span>" +
+       "<span class='zh-back'>他没有钱。</span><br><span class='pinyin-back'>Tā méiyǒu qián.</span><span class='vi-back'>Anh ấy không có tiền.</span>" +
+       "<span class='zh-back'>宿舍里有没有空调？</span><br><span class='pinyin-back'>Sùshè lǐ yǒu méiyǒu kòngtiáo?</span><span class='vi-back'>Trong ký túc xá có hay không có điều hòa?</span>" +
+       "<span class='zh-back'>我学校没有书店。</span><br><span class='pinyin-back'>Wǒ xuéxiào méiyǒu shūdiàn.</span><span class='vi-back'>Trường tôi không có hiệu sách.</span>" +
+       "<span class='zh-back'>我弟弟没有电脑。</span><br><span class='pinyin-back'>Wǒ dìdi méiyǒu diànnǎo.</span><span class='vi-back'>Em trai tôi không có máy tính.</span>" +
+       "<span class='zh-back'>医院没有医生。</span><br><span class='pinyin-back'>Yīyuàn méiyǒu yīshēng.</span><span class='vi-back'>Bệnh viện không có bác sĩ.</span>" +
+       "<span class='zh-back'>你有没有同屋？</span><br><span class='pinyin-back'>Nǐ yǒu méiyǒu tóngwū?</span><span class='vi-back'>Bạn có hay không có bạn cùng phòng?</span>" +
+       "<span class='zh-back'>A: 你们学校有没有留学生？</span><br><span class='pinyin-back'>A: Nǐmen xuéxiào yǒu méiyǒu liúxuéshēng?</span><span class='vi-back'>A: Trường các bạn có hay không có du học sinh?</span>" +
+       "<span class='zh-back'>B: 有，我们学校留学生挺多的。</span><br><span class='pinyin-back'>B: Yǒu, wǒmen xuéxiào liúxuéshēng tǐng duō de.</span><span class='vi-back'>B: Có, trường tôi du học sinh khá nhiều.</span>" +
+       "</div>"
+  }
+];
+
+let idx = 0;
+
+function render() {
+  document.getElementById('frontFace').innerHTML = cards[idx].f;
+  document.getElementById('backFace').innerHTML = cards[idx].b;
+  document.getElementById('progress').innerText = `Thẻ ${idx + 1} / ${cards.length}`;
+}
+
+function flipCard() {
+  document.getElementById('card').classList.toggle('flipped');
+}
+
+function nextCard() {
+  idx = (idx + 1) % cards.length;
+  document.getElementById('card').classList.remove('flipped');
+  render();
+}
+
+function prevCard() {
+  idx = (idx - 1 + cards.length) % cards.length;
+  document.getElementById('card').classList.remove('flipped');
+  render();
+}
+
+document.addEventListener('keydown', function(event) {
+  if (event.key === 'ArrowRight' || event.key === 'ArrowDown') {
+    nextCard();
+    event.preventDefault();
+  } else if (event.key === 'ArrowLeft' || event.key === 'ArrowUp') {
+    prevCard();
+    event.preventDefault();
+  } else if (event.key === ' ' || event.key === 'Enter') {
+    flipCard();
+    event.preventDefault();
+  }
+});
+
+render();
+</script>
+</body>
+</html>
